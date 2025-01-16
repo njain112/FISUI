@@ -4,15 +4,21 @@ import com.qa.base.TestBase;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Action;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
+
+import static javax.xml.datatype.DatatypeConstants.SECONDS;
 
 
 public class EbayCart extends TestBase {
@@ -21,17 +27,27 @@ public class EbayCart extends TestBase {
 	@FindBy(xpath="//input[@type='text']")
 	WebElement searchBox;
 	
-	@FindBy(xpath="//input[@type='submit']")
+	@FindBy(xpath="//span[@class='gh-search-button__label']")
 	WebElement searchButton;
-	
+
 	@FindBy(xpath="//div[@class='srp-river-results clearfix']/ul/li/div/div")
-	List<WebElement> listofProducts;
+	List<WebElement> products;
 
 	@FindBy(xpath="//*[@id='atcBtn_btn_1']")
 	WebElement addtoCart;
 
-	@FindBy(xpath="//*[@id='gh-top']//ul[@id='gh-eb']/li[5]//a/i[@id='gh-cart-n']")
+	@FindBy(xpath="//*[@class='badge']")
 	WebElement addtocartCount;
+
+	@FindBy(xpath="//*[@class='gh-cart']")
+	WebElement cartIcon;
+
+	@FindBy(xpath="//*[@class='gh-minicart-body']//*[@class='gh-info__title']/span")
+	WebElement cartItemName;
+
+
+
+
 	//Initializing the Page Objects:
 	public EbayCart(){
 		PageFactory.initElements(driver, this);
@@ -41,12 +57,12 @@ public class EbayCart extends TestBase {
 	public void validateebayCart() throws InterruptedException {
 		driver.get(prop.getProperty("url"));
 		wait(searchBox);
-		searchBox.sendKeys("books");
+		searchBox.sendKeys("book");
 		wait(searchButton);
 		searchButton.click();
 		String parentWindow=driver.getWindowHandle();
-		wait(listofProducts.get(0));
-		listofProducts.get(0).click();
+		wait(products.get(4));
+		products.get(4).click();
 
 		//Handling multiple windows
 		Set<String> s=driver.getWindowHandles();
@@ -59,14 +75,16 @@ public class EbayCart extends TestBase {
 			}
 		}
 
+
+		//scroll the page by few pixels to get to "Add To Cart" Button
 		JavascriptExecutor js = ((JavascriptExecutor) driver);
 		js.executeScript("window.scrollBy(0,450)");
         wait(addtoCart);
 		addtoCart.click();
 		Thread.sleep(10000);
-		driver.switchTo().window(parentWindow);
+		//driver.switchTo().defaultContent();
 		driver.navigate().refresh();
-		wait(addtocartCount,"visible");
+		wait(addtocartCount);
 
 		System.out.print(addtocartCount.isDisplayed()+addtocartCount.getText());
 
@@ -76,13 +94,19 @@ public class EbayCart extends TestBase {
 	}
 
 public void wait(WebElement element) {
-	WebDriverWait wait = new WebDriverWait(driver,30);
+	WebDriverWait wait = new WebDriverWait(driver,Duration.ofSeconds(30));
 	wait.until(ExpectedConditions.elementToBeClickable(element));
 }
 
 	public void wait(WebElement element,String event) {
-		WebDriverWait wait = new WebDriverWait(driver,30);
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
 		wait.until(ExpectedConditions.visibilityOf(element));
+	}
+
+	public void mouseHoverElement(WebElement element) {
+		Actions action = new Actions(driver);
+		Action a = action.moveToElement(element).build();
+		a.perform();
 	}
 
 
